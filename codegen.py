@@ -145,8 +145,8 @@ class SourceGenerator(NodeVisitor):
         self.write('assert ')
         self.visit(node.test)
         if node.msg is not None:
-           self.write(', ')
-           self.visit(node.msg)
+            self.write(', ')
+            self.visit(node.msg)
 
     def visit_Assign(self, node):
         self.newline(node)
@@ -414,19 +414,19 @@ class SourceGenerator(NodeVisitor):
             self.visit(item)
         self.write(idx and ')' or ',)')
 
-    def sequence_visit(left, right):
-        def visit(self, node):
-            self.write(left)
-            for idx, item in enumerate(node.elts):
-                if idx:
-                    self.write(', ')
-                self.visit(item)
-            self.write(right)
-        return visit
+    def __sequence_visit(self, left, right, node):
+        self.write(left)
+        for idx, item in enumerate(node.elts):
+            if idx:
+                self.write(', ')
+            self.visit(item)
+        self.write(right)
 
-    visit_List = sequence_visit('[', ']')
-    visit_Set = sequence_visit('{', '}')
-    del sequence_visit
+    def visit_List(self, node):
+        self.__sequence_visit('[', ']', node)
+
+    def visit_Set(self, node):
+        self.__sequence_visit('{', '}', node)
 
     def visit_Dict(self, node):
         self.write('{')
@@ -504,19 +504,21 @@ class SourceGenerator(NodeVisitor):
     def visit_Ellipsis(self, node):
         self.write('Ellipsis')
 
-    def generator_visit(left, right):
-        def visit(self, node):
-            self.write(left)
-            self.visit(node.elt)
-            for comprehension in node.generators:
-                self.visit(comprehension)
-            self.write(right)
-        return visit
+    def __generator_visit(self, left, right, node):
+        self.write(left)
+        self.visit(node.elt)
+        for comprehension in node.generators:
+            self.visit(comprehension)
+        self.write(right)
 
-    visit_ListComp = generator_visit('[', ']')
-    visit_GeneratorExp = generator_visit('(', ')')
-    visit_SetComp = generator_visit('{', '}')
-    del generator_visit
+    def visit_ListComp(self, node):
+        self.__generator_visit('[', ']', node)
+
+    def visit_GeneratorExp(self, node):
+        self.__generator_visit('(', ')', node)
+
+    def visit_SetComp(self, node):
+        self.__generator_visit('{', '}', node)
 
     def visit_DictComp(self, node):
         self.write('{')
